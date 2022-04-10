@@ -1,8 +1,10 @@
 package com.example.projemanag.activities
 
+import android.app.Activity
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.MenuItem
 import android.widget.ImageView
 import android.widget.TextView
@@ -22,6 +24,10 @@ class MainActivity : BaseActivity(),NavigationView.OnNavigationItemSelectedListe
     private lateinit var toolbar_main_activity: Toolbar
     private lateinit var drawer_layout: DrawerLayout
     private lateinit var nav_view: NavigationView
+    companion object{
+        const val MyProfileRequestCode : Int =11
+
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -70,10 +76,21 @@ class MainActivity : BaseActivity(),NavigationView.OnNavigationItemSelectedListe
         val navUsername = headerView.findViewById<TextView>(R.id.tv_username)
         navUsername.text = user.name
     }
+    //to update profile in navigation bar 3
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if(resultCode== Activity.RESULT_OK && requestCode== MyProfileRequestCode){
+            FirestoreClass().loadUserData(this)
+        }else{
+            Log.e("Cancelled","Cancelled!!")
+        }
+    }
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when(item.itemId){
             R.id.nav_my_profile->{
-              startActivity(Intent(this,MyProfileActivity::class.java))
+                //to update profile in navigation bar 1
+              startActivityForResult(Intent(this,MyProfileActivity::class.java),
+                  MyProfileRequestCode)
             }
             R.id.nav_sign_out->{
                 FirebaseAuth.getInstance().signOut()

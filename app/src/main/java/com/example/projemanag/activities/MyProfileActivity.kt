@@ -8,7 +8,9 @@ import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.webkit.MimeTypeMap
+import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatEditText
@@ -21,20 +23,25 @@ import com.example.projemanag.R
 import com.example.projemanag.databinding.ActivityMyProfileBinding
 import com.example.projemanag.firebase.FirestoreClass
 import com.example.projemanag.models.User
+import com.example.projemanag.utils.Constants
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import de.hdodenhof.circleimageview.CircleImageView
 import java.io.IOException
 import java.util.jar.Manifest
-
-//Concept of hashmap is also called as dictionary in other programming languages
+//URI(Uniform resource identifier) as its name suggests is used to identify resource
+// (whether it be a page of text, a video or sound clip, a still or animated image, or a program).
+//Concept of hashmap is also called as dictionary in other programming languages.
 class MyProfileActivity : BaseActivity() {
     private lateinit var toolbar_profile_activity: Toolbar
     private lateinit var ivUserImage:CircleImageView
     private lateinit var etName:AppCompatEditText
     private lateinit var etEmail:AppCompatEditText
     private lateinit var etMobile:AppCompatEditText
+    private lateinit var btnUpdate:Button
     private var mSelectedImageFileUri:Uri? =null
+    private var mProfileImageURL:String=""
+    private lateinit var mUserDetails: User
     companion object{
         private const val READ_STORAGE_PERMISSION_CODE=1
         private const val PICK_IMAGE_REQUEST_CODE=2
@@ -47,6 +54,7 @@ class MyProfileActivity : BaseActivity() {
         etEmail=findViewById(R.id.et_email)
         etMobile=findViewById(R.id.et_mobile)
         etName=findViewById(R.id.et_name)
+        btnUpdate=findViewById(R.id.btn_update)
         setupActionBar()
         FirestoreClass().loadUserData(this)
         ivUserImage.setOnClickListener{
@@ -62,6 +70,14 @@ class MyProfileActivity : BaseActivity() {
                     READ_STORAGE_PERMISSION_CODE
 
                 )
+            }
+        }
+        btnUpdate.setOnClickListener{
+            if(mSelectedImageFileUri!=null){
+                uploadUserImage()
+            }else{
+                showProgressDialog(resources.getString(R.string.please_wait))
+                updateUserProfileData()
             }
         }
     }
@@ -83,6 +99,7 @@ class MyProfileActivity : BaseActivity() {
     //function to show image in gallery
     private fun showImageChooser(){
         var galleryIntent= Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+         //startActivityForResult is used when you want to start a new activity and get some result back from that new activity.
         startActivityForResult(galleryIntent, PICK_IMAGE_REQUEST_CODE)
 
     }
@@ -123,6 +140,8 @@ class MyProfileActivity : BaseActivity() {
     //uri can be something on web or on device
     //whenever a image is selected its uri is copied there.
     fun setUserDataInUI(user:User){
+        mUserDetails=user
+        //uri can be something on the web or it can be something on the device.
         Glide
             .with(this@MyProfileActivity)
             .load(user.image)
@@ -138,14 +157,65 @@ class MyProfileActivity : BaseActivity() {
             etMobile.setText(user.mobile.toString())
         }
     }
+    private fun updateUserProfileData(){
+        val userHashMap=HashMap<String,Any>()
+        //var anyChangesMade=false //just to check if there any chnages made
+        if(mProfileImageURL.isNotEmpty() && mProfileImageURL!=mUserDetails.image){
+           //updating value to hashmap
+            userHashMap[Constants.IMAGE]=mProfileImageURL
+            //anyChangesMade=true
+        }
+        if(etName.text.toString() != mUserDetails.name){
+            userHashMap[Constants.NAME]=etName.text.toString()
+            //anyChangesMade=true
+        }
+        if(etMobile.text.toString() != mUserDetails.mobile.toString()){
+            userHashMap[Constants.MOBILE]=etMobile.text.toString().toLong()
+            //anyChangesMade=true
+        }
+        //if(anyChangesMade)
+        FirestoreClass().updateUserProfileData(this,userHashMap)
+    }
     private fun uploadUserImage(){
         showProgressDialog(resources.getString(R.string.please_wait))
         if(mSelectedImageFileUri!=null){
-            val sRef:StorageReference=FirebaseStorage.getInstance().reference.child()
+            //due to this, each image has unique value.
+            val sRef:StorageReference=FirebaseStorage.getInstance().reference.child("USER_IMAGE"+System.currentTimeMillis()+"."
+                    +getFileExtension(mSelectedImageFileUri))
+            //when putting  image file is Successful , take its snapshot
+            sRef.putFile(mSelectedImageFileUri!!).addOnSuccessListener {
+                taskSnapshot->
+                  Log.i("Firebase Image Url", taskSnapshot.metadata!!.reference!!.downloadUrl.toString())
+                taskSnapshot.metadata!!.reference!!.downloadUrl.addOnSuccessListener {
+                    uri->
+                    Log.e("Downloadable Image URL", uri.toString())
+                    mProfileImageURL=uri.toString()
+                    updateUserProfileData()
+
+                }
+
+            }.addOnFailureListener{
+                exception ->
+                 Toast.makeText(this@MyProfileActivity, exception.message,Toast.LENGTH_LONG).show()
+                hideProgressDialog()
+            }
+
         }
     }
-    //to understand file extension of file that we have downloaded
+    //to understand file extension of file that we have downloaded // it can be image,audio anything
     private fun getFileExtension(uri:Uri? ):String?{
-        return MimeTypeMap.getSingleton().getExtensionFromMimeType(contentResolver.getType(uri!!))
+        return MimeTypeMap// class used to get extension
+            .getSingleton()// to get current instance of mime tye map
+            .getExtensionFromMimeType(contentResolver.getType(uri!!))// get the extension of given mimetype
+    }
+    // to update data in database
+    //called each time when profile update is successful
+    fun profileUpdateSuccess(){
+        hideProgressDialog()
+        //to update profile in navigation bar 2
+        setResult(Activity.RESULT_OK)
+        finish()
     }
 }
+//Android uses URI string as the basis for requesting data in a content provider (i.e. to retrieve a list of contacts)
+// and for requesting actions (i.e. opening a webpage in a browser).

@@ -2,6 +2,7 @@ package com.example.projemanag.firebase
 
 import android.app.Activity
 import android.util.Log
+import android.widget.Toast
 import com.example.projemanag.activities.MainActivity
 import com.example.projemanag.activities.MyProfileActivity
 import com.example.projemanag.activities.SignUpActivity
@@ -32,8 +33,26 @@ class FirestoreClass {
                Log.e(activity.javaClass.simpleName,"Error")
            }
     }
+    fun updateUserProfileData(activity: MyProfileActivity,userHashMap: HashMap<String,Any>){
+        //here we are using hashmap to directly update instead of user object to make it easier
+        mFireStore.collection(Constants.USERS).document(getCurrentUserId()).update(userHashMap)
+            .addOnSuccessListener {
+                Log.i(activity.javaClass.simpleName,"Profile data updated successfully!")
+                Toast.makeText(activity,"Profile has been updated successfully!!",Toast.LENGTH_SHORT)
+                activity.profileUpdateSuccess()
+            }.addOnFailureListener{
+                e->
+                 activity.hideProgressDialog()
+                Log.e(activity.javaClass.simpleName,"Error while creating a board ",e)
+                Toast.makeText(activity,"Error in updating profile!!!!",Toast.LENGTH_SHORT)
+            }
+
+    }
     //Basic activity .. it can be any activity main activity or any other activity
     fun loadUserData(activity: Activity){
+        //using this function can reduce our code as we don't have to get loggedInUser in mainActivity,signInActivity,MyProfileActivity
+        //Also in case we ever want to store our data somewhere else,
+        // we would just have to replace FireStoreClass instead of other making changes in all class
         mFireStore.collection(Constants.USERS)
             //create a new document for every single user
             .document(getCurrentUserId())
@@ -50,6 +69,7 @@ class FirestoreClass {
                     is MainActivity -> {
                         activity.updateNavigationUserDetails(loggedInUser)
                     }
+
                     is MyProfileActivity -> {
                          activity.setUserDataInUI(loggedInUser)
                     }
