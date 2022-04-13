@@ -16,6 +16,7 @@ import com.bumptech.glide.Glide
 import com.example.projemanag.R
 import com.example.projemanag.firebase.FirestoreClass
 import com.example.projemanag.models.User
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
 
@@ -24,6 +25,7 @@ class MainActivity : BaseActivity(),NavigationView.OnNavigationItemSelectedListe
     private lateinit var toolbar_main_activity: Toolbar
     private lateinit var drawer_layout: DrawerLayout
     private lateinit var nav_view: NavigationView
+    private lateinit var fabCreateBoard:FloatingActionButton
     companion object{
         const val MyProfileRequestCode : Int =11
 
@@ -34,10 +36,14 @@ class MainActivity : BaseActivity(),NavigationView.OnNavigationItemSelectedListe
         toolbar_main_activity = findViewById<Toolbar>(R.id.toolbar_main_activity)
         drawer_layout = findViewById<DrawerLayout>(R.id.drawer_layout)
         nav_view = findViewById<NavigationView>(R.id.nav_view)
+        fabCreateBoard=findViewById(R.id.fab_create_board)
         setupActionBar()
         //this class will going to be navigation item selected listener
         nav_view.setNavigationItemSelectedListener(this)
         FirestoreClass().loadUserData(this)
+        fabCreateBoard.setOnClickListener{
+            startActivity(Intent(this,CreateBoardActivity::class.java))
+        }
     }
     private fun setupActionBar(){
         setSupportActionBar(toolbar_main_activity)

@@ -42,10 +42,7 @@ class MyProfileActivity : BaseActivity() {
     private var mSelectedImageFileUri:Uri? =null
     private var mProfileImageURL:String=""
     private lateinit var mUserDetails: User
-    companion object{
-        private const val READ_STORAGE_PERMISSION_CODE=1
-        private const val PICK_IMAGE_REQUEST_CODE=2
-    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_my_profile)
@@ -61,14 +58,13 @@ class MyProfileActivity : BaseActivity() {
             // if permission is granted
             if(ContextCompat.checkSelfPermission(this,android.Manifest.permission.READ_EXTERNAL_STORAGE)
             == PackageManager.PERMISSION_GRANTED){
-                  showImageChooser()
+                  Constants.showImageChooser(this)
             }else{
                 //ask for permission
                 ActivityCompat.requestPermissions(
                     this,
                     arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE),
-                    READ_STORAGE_PERMISSION_CODE
-
+                    Constants.READ_STORAGE_PERMISSION_CODE
                 )
             }
         }
@@ -88,26 +84,19 @@ class MyProfileActivity : BaseActivity() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if(requestCode == READ_STORAGE_PERMISSION_CODE){
+        if(requestCode == Constants.READ_STORAGE_PERMISSION_CODE){
             if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                 showImageChooser()
+                 Constants.showImageChooser(this)
             }else{
                 Toast.makeText(this,"You, denied permission for storage.",Toast.LENGTH_SHORT).show()
             }
         }
     }
-    //function to show image in gallery
-    private fun showImageChooser(){
-        var galleryIntent= Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-         //startActivityForResult is used when you want to start a new activity and get some result back from that new activity.
-        startActivityForResult(galleryIntent, PICK_IMAGE_REQUEST_CODE)
-
-    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         // Check if the result code is OK, returned with requestCode and retrieved data is not null
-        if(resultCode==Activity.RESULT_OK && requestCode== PICK_IMAGE_REQUEST_CODE && data!!.data !=null){
+        if(resultCode==Activity.RESULT_OK && requestCode== Constants.PICK_IMAGE_REQUEST_CODE && data!!.data !=null){
             //data is what we get here from onActivityResult
                 //it returns a uri which mSelectedImageFileUri stores
             mSelectedImageFileUri=data.data
@@ -181,7 +170,7 @@ class MyProfileActivity : BaseActivity() {
         if(mSelectedImageFileUri!=null){
             //due to this, each image has unique value.
             val sRef:StorageReference=FirebaseStorage.getInstance().reference.child("USER_IMAGE"+System.currentTimeMillis()+"."
-                    +getFileExtension(mSelectedImageFileUri))
+                    +Constants.getFileExtension(this,mSelectedImageFileUri))
             //when putting  image file is Successful , take its snapshot
             sRef.putFile(mSelectedImageFileUri!!).addOnSuccessListener {
                 taskSnapshot->
@@ -202,12 +191,7 @@ class MyProfileActivity : BaseActivity() {
 
         }
     }
-    //to understand file extension of file that we have downloaded // it can be image,audio anything
-    private fun getFileExtension(uri:Uri? ):String?{
-        return MimeTypeMap// class used to get extension
-            .getSingleton()// to get current instance of mime tye map
-            .getExtensionFromMimeType(contentResolver.getType(uri!!))// get the extension of given mimetype
-    }
+
     // to update data in database
     //called each time when profile update is successful
     fun profileUpdateSuccess(){
