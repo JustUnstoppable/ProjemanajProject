@@ -3,10 +3,8 @@ package com.example.projemanag.firebase
 import android.app.Activity
 import android.util.Log
 import android.widget.Toast
-import com.example.projemanag.activities.MainActivity
-import com.example.projemanag.activities.MyProfileActivity
-import com.example.projemanag.activities.SignUpActivity
-import com.example.projemanag.activities.SigninActivity
+import com.example.projemanag.activities.*
+import com.example.projemanag.models.Board
 import com.example.projemanag.models.User
 import com.example.projemanag.utils.Constants
 import com.google.firebase.auth.FirebaseAuth
@@ -32,6 +30,21 @@ class FirestoreClass {
                e->
                Log.e(activity.javaClass.simpleName,"Error")
            }
+    }
+    // creation of board
+    fun createBoard(activity:CreateBoardActivity,board: Board){
+        mFireStore.collection(Constants.BOARDS)
+            .document() // generate collection with random values/id
+            .set(board, SetOptions.merge()) //merge data if it exists
+            .addOnSuccessListener {
+                Log.e(activity.javaClass.simpleName,"Board Created Successfully!!")
+                Toast.makeText(activity,"Board Created Successfully. ",Toast.LENGTH_SHORT).show()
+                activity.boardCreatedSuccessfully()
+            }.addOnFailureListener{
+                exception->
+                    activity.hideProgressDialog()
+                    Log.e(activity.javaClass.simpleName,"Error while creating a board.",exception)
+            }
     }
     fun updateUserProfileData(activity: MyProfileActivity,userHashMap: HashMap<String,Any>){
         //here we are using hashmap to directly update instead of user object to make it easier

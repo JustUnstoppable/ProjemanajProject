@@ -21,16 +21,20 @@ import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import java.io.IOException
 
-class CreateBoardActivity : AppCompatActivity() {
+class CreateBoardActivity : BaseActivity() {
     private lateinit var toolbarCreateBoardActivity: androidx.appcompat.widget.Toolbar
     private var mSelectedImageFileUri:Uri? = null
     private lateinit var ivBoardImageView: ImageView
-
+    private lateinit var mUserName:String
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create_board)
         toolbarCreateBoardActivity=findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar_create_board_activity)
         setupActionBar()
+        //this way we don't have to get user name here again and have another database request
+        if(intent.hasExtra(Constants.NAME)){
+            mUserName=intent.getStringExtra(Constants.NAME)
+        }
         ivBoardImageView=findViewById<ImageView>(R.id.iv_board_image)
         ivBoardImageView.setOnClickListener {
             // if permission is granted
@@ -47,7 +51,13 @@ class CreateBoardActivity : AppCompatActivity() {
             }
         }
     }
-
+    //to know that board was created successfully
+    fun boardCreatedSuccessfully(){
+        //inherent from base activity
+        hideProgressDialog()
+        //close this activity
+        finish()
+    }
     private fun setupActionBar(){
         setSupportActionBar(toolbarCreateBoardActivity)
         val actionBar=supportActionBar

@@ -10,6 +10,8 @@ import com.example.projemanag.activities.MyProfileActivity
 
 object Constants {
     const val USERS:String="users"
+    //new collection in our fireStore database
+    const val BOARDS:String="boards"
     const val IMAGE: String="image"
     const val NAME: String="name"
     const val MOBILE: String="mobile"
