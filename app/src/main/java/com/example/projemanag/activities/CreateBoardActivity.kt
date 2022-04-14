@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
 import android.webkit.MimeTypeMap
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
 import android.widget.Toolbar
@@ -16,6 +17,8 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
 import com.example.projemanag.R
+import com.example.projemanag.firebase.FirestoreClass
+import com.example.projemanag.models.Board
 import com.example.projemanag.utils.Constants
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
@@ -26,11 +29,15 @@ class CreateBoardActivity : BaseActivity() {
     private var mSelectedImageFileUri:Uri? = null
     private lateinit var ivBoardImageView: ImageView
     private lateinit var mUserName:String
+    private  lateinit var etBoardName:EditText
+    //if there is no image selected mSelectedImageFileUri, then we use new image for board
     private var mBoardImageURL :String=""
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create_board)
+        etBoardName=findViewById<EditText>(R.id.et_board_name)
         toolbarCreateBoardActivity=findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar_create_board_activity)
+
         setupActionBar()
         //this way we don't have to get user name here again and have another database request
         if(intent.hasExtra(Constants.NAME)){
@@ -51,6 +58,23 @@ class CreateBoardActivity : BaseActivity() {
                 )
             }
         }
+    }
+    // function to create board
+    private fun createBoard(){
+        val assignedUserArrayList:ArrayList<String> = ArrayList()
+        assignedUserArrayList.add(getCurrentUserId())
+
+        var board=Board(
+            etBoardName.text.toString(),
+            mBoardImageURL,
+            mUserName,
+            assignedUserArrayList
+        )
+        FirestoreClass().createBoard(this,board)
+    }
+    //to upload board image
+    private fun uploadBoardImage(){
+
     }
     //to know that board was created successfully
     fun boardCreatedSuccessfully(){
