@@ -5,9 +5,9 @@ import android.os.Parcelable
 
 
 data class Board(
-    val  name:String="",
+    val  name:String="",   //name of board
     val image:String="",
-    val createdBy: String="",
+    val createdBy: String="", //name of user
     val assignedTo:ArrayList<String> = ArrayList()
 ):Parcelable {
     constructor(parcel: Parcel) : this(

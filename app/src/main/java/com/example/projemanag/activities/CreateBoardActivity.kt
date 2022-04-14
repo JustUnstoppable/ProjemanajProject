@@ -26,6 +26,7 @@ class CreateBoardActivity : BaseActivity() {
     private var mSelectedImageFileUri:Uri? = null
     private lateinit var ivBoardImageView: ImageView
     private lateinit var mUserName:String
+    private var mBoardImageURL :String=""
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create_board)
@@ -33,7 +34,7 @@ class CreateBoardActivity : BaseActivity() {
         setupActionBar()
         //this way we don't have to get user name here again and have another database request
         if(intent.hasExtra(Constants.NAME)){
-            mUserName=intent.getStringExtra(Constants.NAME)
+            mUserName= intent.getStringExtra(Constants.NAME)!!
         }
         ivBoardImageView=findViewById<ImageView>(R.id.iv_board_image)
         ivBoardImageView.setOnClickListener {

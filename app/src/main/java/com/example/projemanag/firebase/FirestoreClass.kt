@@ -11,8 +11,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 
-// we can do this directly inside firestore also. But for long term point of view , maybe when forestore services stops working
-// then i can make chenges here only to make it once again working.
+// we can do this directly inside fireStore also. But for long term point of view , maybe when fireStore services stops working
+// then i can make changes here only to make it once again working.
 class FirestoreClass {
     private val mFireStore=FirebaseFirestore.getInstance()
     fun registerUser(activity: SignUpActivity,userInfo: User){
