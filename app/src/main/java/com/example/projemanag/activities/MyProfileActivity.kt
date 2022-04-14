@@ -168,26 +168,26 @@ class MyProfileActivity : BaseActivity() {
     private fun uploadUserImage(){
         showProgressDialog(resources.getString(R.string.please_wait))
         if(mSelectedImageFileUri!=null){
-            //due to this, each image has unique value.
-            val sRef:StorageReference=FirebaseStorage.getInstance().reference.child("USER_IMAGE"+System.currentTimeMillis()+"."
-                    +Constants.getFileExtension(this,mSelectedImageFileUri))
-            //when putting  image file is Successful , take its snapshot
-            sRef.putFile(mSelectedImageFileUri!!).addOnSuccessListener {
-                taskSnapshot->
-                  Log.i("Firebase Image Url", taskSnapshot.metadata!!.reference!!.downloadUrl.toString())
-                taskSnapshot.metadata!!.reference!!.downloadUrl.addOnSuccessListener {
-                    uri->
-                    Log.e("Downloadable Image URL", uri.toString())
-                    mProfileImageURL=uri.toString()
-                    updateUserProfileData()
+                //due to this, each image has unique value.
+                val sRef:StorageReference=FirebaseStorage.getInstance().reference.child("USER_IMAGE"+System.currentTimeMillis()+"."
+                        +Constants.getFileExtension(this,mSelectedImageFileUri))
+                //when putting  image file is Successful , take its snapshot
+                sRef.putFile(mSelectedImageFileUri!!).addOnSuccessListener {
+                        taskSnapshot->
+                    Log.i("Firebase Image Url", taskSnapshot.metadata!!.reference!!.downloadUrl.toString())
+                    taskSnapshot.metadata!!.reference!!.downloadUrl.addOnSuccessListener {
+                            uri->
+                        Log.e("Downloadable Image URL", uri.toString())
+                        mProfileImageURL=uri.toString()
+                        updateUserProfileData()
 
+                    }
+
+                }.addOnFailureListener{
+                        exception ->
+                    Toast.makeText(this@MyProfileActivity, exception.message,Toast.LENGTH_LONG).show()
+                    hideProgressDialog()
                 }
-
-            }.addOnFailureListener{
-                exception ->
-                 Toast.makeText(this@MyProfileActivity, exception.message,Toast.LENGTH_LONG).show()
-                hideProgressDialog()
-            }
 
         }
     }

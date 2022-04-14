@@ -9,10 +9,7 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
 import android.webkit.MimeTypeMap
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.Toast
-import android.widget.Toolbar
+import android.widget.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
@@ -30,6 +27,7 @@ class CreateBoardActivity : BaseActivity() {
     private lateinit var ivBoardImageView: ImageView
     private lateinit var mUserName:String
     private  lateinit var etBoardName:EditText
+    private lateinit var btnCreate:Button
     //if there is no image selected mSelectedImageFileUri, then we use new image for board
     private var mBoardImageURL :String=""
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,6 +42,7 @@ class CreateBoardActivity : BaseActivity() {
             mUserName= intent.getStringExtra(Constants.NAME)!!
         }
         ivBoardImageView=findViewById<ImageView>(R.id.iv_board_image)
+        btnCreate=findViewById(R.id.btn_create)
         ivBoardImageView.setOnClickListener {
             // if permission is granted
             if(ContextCompat.checkSelfPermission(this,android.Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -58,11 +57,21 @@ class CreateBoardActivity : BaseActivity() {
                 )
             }
         }
+        btnCreate.setOnClickListener{
+            if(mSelectedImageFileUri!=null){
+                //create board using chosen image
+                uploadBoardImage()
+            }else{
+                showProgressDialog(resources.getString(R.string.please_wait))
+                //create board with default image
+                createBoard()
+            }
+        }
     }
     // function to create board
     private fun createBoard(){
         val assignedUserArrayList:ArrayList<String> = ArrayList()
-        assignedUserArrayList.add(getCurrentUserId())
+        assignedUserArrayList.add(getCurrentUserId()) // stores user id
 
         var board=Board(
             etBoardName.text.toString(),
@@ -72,7 +81,34 @@ class CreateBoardActivity : BaseActivity() {
         )
         FirestoreClass().createBoard(this,board)
     }
+    //Function to upload board image
+    private fun uploadBoardImage(){
+       showProgressDialog(resources.getString(R.string.please_wait))
 
+            //due to this, each image has unique value.
+            val sRef:StorageReference=FirebaseStorage.getInstance().reference.child("BOARD_IMAGE"+System.currentTimeMillis()+"."
+                    +Constants.getFileExtension(this,mSelectedImageFileUri))
+            //when putting  image file is Successful , take its snapshot
+            sRef.putFile(mSelectedImageFileUri!!).addOnSuccessListener {
+                    taskSnapshot->
+                Log.i("Board Image Url", taskSnapshot.metadata!!.reference!!.downloadUrl.toString())
+                taskSnapshot.metadata!!.reference!!.downloadUrl.addOnSuccessListener {
+                        uri->
+                    Log.e("Downloadable Image URL", uri.toString())
+                    mBoardImageURL=uri.toString()
+                    createBoard()
+
+                }
+
+            }.addOnFailureListener{
+                    exception ->
+                Toast.makeText(this, exception.message,Toast.LENGTH_LONG).show()
+                hideProgressDialog()
+            }
+
+
+
+    }
     //to know that board was created successfully
     fun boardCreatedSuccessfully(){
         //inherent from base activity
