@@ -72,10 +72,7 @@ class CreateBoardActivity : BaseActivity() {
         )
         FirestoreClass().createBoard(this,board)
     }
-    //to upload board image
-    private fun uploadBoardImage(){
 
-    }
     //to know that board was created successfully
     fun boardCreatedSuccessfully(){
         //inherent from base activity
